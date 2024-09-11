@@ -1,5 +1,3 @@
 https://csdiy.wiki/%E7%BC%96%E7%A8%8B%E5%85%A5%E9%97%A8/cpp/CS106L/
 https://github.com/PKUFlyingPig/CS106L
-https://web.stanford.edu/class/archive/cs/cs106l/cs106l.1212/lectures.html
-winter 2021
-
+https://github.com/wengwz/CS106L-Self-Learning

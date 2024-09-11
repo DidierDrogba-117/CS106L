@@ -1,42 +1,24 @@
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
+#include <vector>
+#include <numeric>  // for std::inner_product
 
-std::string fileToString(std::ifstream& file) {
-    // Ensure the file is open and valid
-    if (!file.is_open()) {
-        return "";  // Return an empty string if the file isn't open
+int dotProduct(const std::vector<int>& v1, const std::vector<int>& v2) {
+    // Check if the vectors are of the same size
+    if (v1.size() != v2.size()) {
+        std::cerr << "Error: Vectors must be of the same length." << std::endl;
+        return 0;  // Or you could throw an exception
     }
 
-    // Lambda to read the file line by line and accumulate the contents into a string
-    auto accumulateFileContents = [&]() -> std::string {
-        std::stringstream buffer;
-        std::string line;
-
-        // Read the file line by line
-        while (std::getline(file, line)) {
-            buffer << line << "\n";  // Accumulate each line with a newline
-        }
-        return buffer.str();  // Return the entire file contents as a string
-    };
-
-    // Call the lambda to get the file contents
-    return accumulateFileContents();
+    // Use std::inner_product to compute the dot product
+    return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0);
 }
 
 int main() {
-    std::ifstream inputFile("example.txt");
+    std::vector<int> v1 = {1, 2, 3};
+    std::vector<int> v2 = {4, 5, 6};
 
-    if (!inputFile) {
-        std::cerr << "Error opening file." << std::endl;
-        return 1;
-    }
-
-    // Convert file contents to a string using fileToString
-    std::string fileContents = fileToString(inputFile);
-    
-    std::cout << "File Contents:\n" << fileContents << std::endl;
+    int result = dotProduct(v1, v2);
+    std::cout << "Dot Product: " << result << std::endl;
 
     return 0;
 }
