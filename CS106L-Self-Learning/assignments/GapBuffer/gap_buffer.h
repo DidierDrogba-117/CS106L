@@ -204,6 +204,12 @@ typename GapBuffer<T>::const_reference GapBuffer<T>::get_at_cursor() const {
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
     // Be sure to use the static_cast/const_cast trick in the non-const version.
+
+    // 1. const_cast current constant obj to non-const 
+    // 2. with non-const obj, call non-const get_at_cursor
+    // 3. static_cast the return value to const
+
+    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)>->get_at_cursor());
 }
 
 template <typename T>
@@ -211,6 +217,12 @@ typename GapBuffer<T> ::const_reference GapBuffer<T>::at(size_type pos) const {
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
     // Be sure to use the static_cast/const_cast trick in the non-const version.
+
+    // 1. const_cast current constant obj to non-const 
+    // 2. with non-const obj, call non-const at
+    // 3. static_cast the return value to const
+
+    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)->at(pos));
 }
 
 // Part 3: operator overloading
@@ -219,6 +231,7 @@ typename GapBuffer<T>::reference GapBuffer<T>::operator[](size_type pos) {
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
     // Be sure to use the static_cast/const_cast trick here after implementing the const-version.
+    return at(pos);
 }
 
 template <typename T>
@@ -226,23 +239,45 @@ typename GapBuffer<T>::const_reference GapBuffer<T>::operator[](size_type pos) c
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
     // Be sure to use the static_cast/const_cast trick in the non-const version.
+    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)->operator[](pos);)
+    
 }
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const GapBuffer<T>& buf) {
     // TODO: implement this operator (~18 lines long)
+    os << "{";
+    // corner case 
+    // if (buf.size() == 0) {os << "^";}
+    // 
+    for (int i = 0; i < buf.size(); i++) {
+        if (int i != 0) {os << " ";}
+        if (buf.cursor_index == i) {os << "^";}
+        os << buf[i];
+        // before last element, print a comma
+        if (i < buf.size() - 1) {os << ",";}
+    }
+    if (buf.cursor_index == buf.size()) {os << "^";}
+    os << "}";
+    return os;
 }
 
 template <typename T>
 bool operator==(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
     // TODO: implement this operator (~1 line long)
     // Hint: std::equal can be used after you implement iterators
+    if (lhs.size() != rhs.size()) {return false;}
+    for (size_t i = 0; i < lhs.size(); i++) {
+        if (lhs[i] != rhs[i]) {return false;}
+    }
+    return true;
 }
 
 template <typename T>
 bool operator!=(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
     // TODO: implement this operator (~1 line long)
     // Hint: how are == and != related?
+    return !(lhs == rhs);
 }
 
 template <typename T>
@@ -255,21 +290,29 @@ bool operator<(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
     // auto& lhs_nonconst = const_cast<GapBuffer<T>&>(lhs);
     // auto& rhs_nonconst = const_cast<GapBuffer<T>&>(lhs);
     // use lhs_nonconst.begin(), etc.
+    size_t min_size = std::min(lhs.size(), rhs.size());
+    for (size_t i = 0; i < min_size; i++) {
+        if (lhs[i] != rhs[i]) {return lhs[i] < rhs[i];}
+    }
+    return lhs.size() < rhs.size();
 }
 
 template <typename T>
 bool operator>(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
     // TODO: implement this operator (~1 line long)
+    return !(lhs < rhs) && lhs != rhs;
 }
 
 template <typename T>
 bool operator<=(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
     // TODO: implement this operator (~1 line long)
+    return !(lhs > rhs);
 }
 
 template <typename T>
 bool operator>=(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
     // TODO: implement this operator (~1 line long)
+    return !(lhs < rhs);
 }
 
 // Part 4: turn everything into a template!
