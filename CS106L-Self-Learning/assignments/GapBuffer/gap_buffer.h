@@ -254,12 +254,12 @@ std::ostream& operator<<(std::ostream& os, const GapBuffer<T>& buf) {
     // 
     for (size_t i = 0; i < buf.size(); i++) {
         if (i != 0) {os << " ";}
-        if (buf.cursor_index == i) {os << "^";}
+        if (buf.cursor_index() == i) {os << "^";}
         os << buf[i];
         // before last element, print a comma
         if (i < buf.size() - 1) {os << ",";}
     }
-    if (buf.cursor_index == buf.size()) {os << "^";}
+    if (buf.cursor_index() == buf.size()) {os << "^";}
     os << "}";
     return os;
 }
