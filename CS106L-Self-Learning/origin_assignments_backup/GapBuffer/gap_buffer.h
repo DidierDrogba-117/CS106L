@@ -58,7 +58,6 @@ public:
     iterator end();
     iterator cursor();
 
-// member varibles,  declared inside the private:
 private:
     size_type _logical_size; // uses external_index
     size_type _buffer_size;  // uses array_index
@@ -113,47 +112,26 @@ private:
 
 // Part 1: basic functions
 template <typename T>
-GapBuffer<T>::GapBuffer():
+GapBuffer<T>::GapBuffer(){
     // TODO: Implement the default constructor (~5 lines long)
     // use member initialization list
-    _logical_size(0), 
-    _buffer_size(kDefaultSize), 
-    _cursor_index(0), 
-    _gap_size(kDefaultSize),
-    _elems(new T[kDefaultSize]) {}
+}
 
 template <typename T>
-GapBuffer<T>::GapBuffer(size_type count, const value_type& val):  
+GapBuffer<T>::GapBuffer(size_type count, const value_type& val)  {
     // TODO: Implement the fill constructor (~6 lines long)
     // use member initialization list
-    _logical_size(count);
-    _buffer_size(2 * count);
-    _cursor_index(count);
-    _gap_size(count);
-    _elems(new T[2 * count]) {
-        for (size_type i = 0; i < count; i++) {
-            _elems[i] = val;
-        }
-    }
+}
 
 template <typename T>
 void GapBuffer<T>::insert_at_cursor(const_reference element) {
     // TODO: implement this function (~7 lines long)
     // Hint: call reserve() to resize
-    if (_gap_size == 0) {reserve(2 * _buffer_size);}
-    _elems[_cursor_index] = element;
-    _cursor_index++;
-    _logical_size++;
-    _gap_size--;
 }
 
 template <typename T>
 void GapBuffer<T>::delete_at_cursor() {
     // TODO: implement this function (~4 lines long)
-    if (_cursor_index) {return;}
-    _cursor_index--;
-    _logical_size--;
-    _gap_size++;    
 }
 
 template <typename T>
@@ -161,40 +139,28 @@ typename GapBuffer<T>::reference GapBuffer<T>::get_at_cursor() {
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
     // Be sure to use the static_cast/const_cast trick here after implementing the const-version.
-    if (_cursor_index == _logical_size) {
-        throw std::string("get_at_cursor: cursor is at the end of the buffer");
-    }
-    return _elems[to_array_index(_cursor_index)];
-    
 }
 
 template <typename T>
 typename GapBuffer<T>::reference GapBuffer<T>::at(size_type pos) {
     // TODO: implement this function (~1 line long)
     // Hint: at should do error-checking!
-    if (pos > _logical_size) {
-        throw std::string("at: pos is out of bounds");
-    }
-    return _elems[to_array_index(pos)];  
 }
 
 template <typename T>
 typename GapBuffer<T>::size_type GapBuffer<T>::size() const {
     // TODO: implement this function (~1 line long)
-    return _logical_size;
 }
 
 template <typename T>
 typename GapBuffer<T>::size_type GapBuffer<T>::cursor_index() const {
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
-    return _cursor_index;
 }
 
 template <typename T>
 bool GapBuffer<T>::empty() const {
     // TODO: implement this function (~1 line long)
-    return _logical_size == 0;
 }
 
 // Part 2: const-correctness
