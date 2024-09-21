@@ -126,14 +126,16 @@ template <typename T>
 GapBuffer<T>::GapBuffer(size_type count, const value_type& val):  
     // TODO: Implement the fill constructor (~6 lines long)
     // use member initialization list
-    _logical_size(count);
-    _buffer_size(2 * count);
-    _cursor_index(count);
-    _gap_size(count);
-    _elems(new T[2 * count]) {
-        for (size_type i = 0; i < count; i++) {
-            _elems[i] = val;
-        }
+    _logical_size(count),
+    _buffer_size(2 * count),
+    _cursor_index(count),
+    _gap_size(count),
+    _elems(new T[2 * count]) 
+    {
+        // for (size_type i = 0; i < count; i++) {
+        //     _elems[i] = val;
+        // }
+    std::fill(_elems, _elems + count, val);
     }
 
 template <typename T>
@@ -150,7 +152,7 @@ void GapBuffer<T>::insert_at_cursor(const_reference element) {
 template <typename T>
 void GapBuffer<T>::delete_at_cursor() {
     // TODO: implement this function (~4 lines long)
-    if (_cursor_index) {return;}
+    if (_cursor_index == 0) {return;}
     _cursor_index--;
     _logical_size--;
     _gap_size++;    
@@ -209,7 +211,7 @@ typename GapBuffer<T>::const_reference GapBuffer<T>::get_at_cursor() const {
     // 2. with non-const obj, call non-const get_at_cursor
     // 3. static_cast the return value to const
 
-    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)>->get_at_cursor());
+    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)->get_at_cursor());
 }
 
 template <typename T>
@@ -239,7 +241,7 @@ typename GapBuffer<T>::const_reference GapBuffer<T>::operator[](size_type pos) c
     // TODO: implement this function (~1 line long)
     // Hint: check out the indexing helper functions we provide
     // Be sure to use the static_cast/const_cast trick in the non-const version.
-    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)->operator[](pos);)
+    return static_cast<const_reference> (const_cast<GapBuffer<T>*>(this)->operator[](pos));
     
 }
 
@@ -250,8 +252,8 @@ std::ostream& operator<<(std::ostream& os, const GapBuffer<T>& buf) {
     // corner case 
     // if (buf.size() == 0) {os << "^";}
     // 
-    for (int i = 0; i < buf.size(); i++) {
-        if (int i != 0) {os << " ";}
+    for (size_t i = 0; i < buf.size(); i++) {
+        if (i != 0) {os << " ";}
         if (buf.cursor_index == i) {os << "^";}
         os << buf[i];
         // before last element, print a comma
@@ -322,26 +324,38 @@ bool operator>=(const GapBuffer<T>& lhs, const GapBuffer<T>& rhs) {
 template <typename T>
 typename GapBufferIterator<T>::reference GapBufferIterator<T>::operator*() {
     // TODO: implement this operator (~1 line long)
+    return _pointee->at(_index);
 }
 
 template <typename T>
 GapBufferIterator<T>& GapBufferIterator<T>::operator++() {
     // TODO: implement this prefix operator (~2 lines long)
+    _index++;
+    return *this;
 }
 
 template <typename T>
 GapBufferIterator<T> GapBufferIterator<T>::operator++(int) {
     // TODO: implement this postfix operator (~3 lines long)
+    GapBufferIterator<T> temp = *this;
+    _index++;
+    return temp;
 }
 
 template <typename T>
 GapBufferIterator<T>& GapBufferIterator<T>::operator--() {
     // TODO: implement this prefix operator (~2 lines long)
+    _index--;
+    return *this;
+
 }
 
 template <typename T>
 GapBufferIterator<T> GapBufferIterator<T>::operator--(int) {
     // TODO: implement this postfix operator (~3 lines long)
+    GapBufferIterator<T> tmp = *this;
+    _index--;
+    return tmp;
 }
 
 template <typename T>
@@ -350,6 +364,9 @@ GapBufferIterator<T> operator+(const GapBufferIterator<T>& lhs,
     // TODO: implement this operator (~3 lines long)
     // Note: this operator is not a friend of the GapBufferIterator class
     // Hint: write the operator in terms of +=
+    GapBufferIterator<T> tmp = lhs;
+    tmp += diff;
+    return tmp;
 }
 
 template <typename T>
@@ -358,6 +375,7 @@ GapBufferIterator<T> operator+(typename GapBufferIterator<T>::size_type diff,
     // TODO: implement this operator (~1 line long)
     // Note: this operator is not a friend of the GapBufferIterator class
     // Hint: write the operator in terms of the operator+ you wrote above.
+    return rhs + diff;
 }
 
 template <typename T>
@@ -366,6 +384,9 @@ GapBufferIterator<T> operator-(const GapBufferIterator<T>& lhs,
     // TODO: implement this operator (~3 lines long)
     // Note: this operator is not a friend of the GapBufferIterator class
     // Hint: write the operator in terms of -=
+    GapBufferIterator<T> tmp = lhs;
+    tmp -= diff;
+    return tmp;
 }
 
 // The functions that are part of the GapBuffer class is provided for you!
@@ -389,26 +410,67 @@ typename GapBuffer<T>::iterator GapBuffer<T>::cursor() {
 template <typename T>
 GapBuffer<T>::~GapBuffer() {
     // TODO: implement this destructor (~1 line long)
-}
-template <typename T>
-GapBuffer<T>::GapBuffer(std::initializer_list<T> init) {
-    // TODO: implement this initializer list constructor (~2 lines long)
+    delete [] _elems;
 }
 
+// use fill constructor 
+// TODO: possible issues here for fill constructor
 template <typename T>
-GapBuffer<T>::GapBuffer(const GapBuffer& other) {
+GapBuffer<T>::GapBuffer(std::initializer_list<T> init):
+GapBuffer(init.size())
+{
+    // TODO: implement this initializer list constructor (~2 lines long)
+    std::copy(init.begin(), init.end(), _elems);
+}
+
+// template <typename T>
+// GapBuffer<T>::GapBuffer(std::initializer_list<T> init):
+// _logical_size(init.size()),
+// _buffer_size(2*init.size()),
+// _cursor_index(init.size()),
+// _gap_size(init.size()),
+// _elems(new T[2*init.size()])
+// {
+//     // TODO: implement this initializer list constructor (~2 lines long)
+//     std:copy(init.begin(), init.end(), begin());
+// }
+
+template <typename T>
+GapBuffer<T>::GapBuffer(const GapBuffer& other):
+    _logical_size(other._logical_size),
+    _buffer_size(other._buffer_size),
+    _cursor_index(other._cursor_index),
+    _gap_size(other._gap_size),
+    _elems(new T[other._buffer_size])
+{
     // TODO: implement this copy constructor (~4 lines long)
     // use member initialization list!
+    std::copy(other._elems, other._elems + other._buffer_size, _elems);
 }
 
 template <typename T>
 GapBuffer<T>& GapBuffer<T>::operator=(const GapBuffer& rhs) {
     // TODO: implement this copy assignment operator (~8 lines long)
+    // If the objects are the same, do nothing and return the current object.
+    if (&rhs == this) {return *this;}
+    _logical_size = rhs._logical_size;
+    _buffer_size = rhs._buffer_size;
+    _cursor_index = rhs._cursor_index;
+    _gap_size = rhs._gap_size;
+    _elems = new T[rhs._buffer_size];
+    std::copy(rhs._elems, rhs._elems + rhs._buffer_size, _elems);
+    return *this;
 }
 
 // Part 7: Move semantics
 template <typename T>
-GapBuffer<T>::GapBuffer(GapBuffer&& other) {
+GapBuffer<T>::GapBuffer(GapBuffer&& other)
+    : _logical_size(other._logical_size),
+      _buffer_size(other._buffer_size),
+      _cursor_index(other._cursor_index),
+      _gap_size(other._gap_size),
+      _elems(other._elems)
+{
     // TODO: implement this move constructor (~4 lines long)
     // use initializer list!
 
@@ -416,6 +478,12 @@ GapBuffer<T>::GapBuffer(GapBuffer&& other) {
     // as a hack to cast away the const-ness of your parameter.
     // auto& other_nonconst = const_cast<GapBuffer<T>&>(other);
     // use other.begin(), etc.
+    // After transferring ownership, invalidate the `other` buffer.
+    other._logical_size = 0;
+    other._buffer_size = 0;
+    other._cursor_index = 0;
+    other._gap_size = 0;
+    other._elems = nullptr;
 }
 
 template <typename T>
@@ -426,13 +494,38 @@ GapBuffer<T>& GapBuffer<T>::operator=(GapBuffer&& rhs) {
     // as a hack to cast away the const-ness of your parameter.
     // auto& rhs_nonconst = const_cast<GapBuffer<T>&>(rhs);
     // use rhs.begin(), etc.
+    // If the objects are the same, do nothing and return the current object.
+    if (&rhs == this) {return *this;}
+    // Free any existing resources in this object
+    delete[] _elems;
+    // steal the resources from rhs
+    _logical_size = std::move(rhs._logical_size);
+    _buffer_size = std::move(rhs._buffer_size);
+    _cursor_index = std::move(rhs._cursor_index);
+    _gap_size = std::move(rhs._gap_size);
+    _elems = std::move(rhs._elems);
+    // reset rhs
+    rhs._elems = nullptr;
+    rhs._logical_size = 0;
+    rhs._buffer_size = 0;
+    rhs._cursor_index = 0;
+    rhs._gap_size = 0;
+    return *this;
 }
 
 template <typename T>
 void GapBuffer<T>::insert_at_cursor(value_type&& element) {
     // TODO: implement this insert function (takes in an r-value) (~7 lines long)
-    insert_at_cursor(element); // by default, calls the l-value version above
+    // insert_at_cursor(element); // by default, calls the l-value version above
     // when you are ready to implement, remove the insert_at_cursor call.
+
+    if (_gap_size == 0) {reserve(2 * _buffer_size);}
+
+    _elems[_cursor_index] = std::move(element);
+    _cursor_index++;
+    _logical_size++;
+    _gap_size--;
+
 }
 
 // Part 8: Make your code RAII-compliant - change the code throughout
