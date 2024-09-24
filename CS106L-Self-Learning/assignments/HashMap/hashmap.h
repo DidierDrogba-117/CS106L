@@ -36,7 +36,7 @@
 *           The const and reference are not required, but key cannot be modified in function.
 *      - K and M must be regular (copyable, default constructible, and equality comparable).
 */
-template<typename K, typename M, typename H = std::hash<M>>
+template<typename K, typename M, typename H = std::hash<K>>
 class HashMap {
 public:
     /*
@@ -124,71 +124,10 @@ public:
     */
     ~HashMap();
 
-    /*
-    * Returns the number of (K, M) pairs in the map.
-    *
-    * We declare this function inline since it is short and
-    * the compiler can optimize by doing a direct inline substitution.
-    *
-    * Parameters: none
-    * Return value: size_t
-    *
-    * Usage:
-    *      if (map.size() < 3) { ... }
-    *
-    * Complexity: O(1) (inlined because function is short)
-    */
-    inline size_t size();
-
-    /*
-    * Returns whether the HashMap is empty.
-    *
-    * Parameters: none
-    * Return value: bool
-    *
-    * Usage:
-    *      if (map.empty()) { ... }
-    *
-    * Complexity: O(1) (inlined because function is short)
-    */
-    inline bool empty();
-
-    /*
-    * Returns the load_factor, defined as size/bucket_count.
-    *
-    * Parameters: none
-    * Return value: float
-    *
-    * Usage:
-    *      float load_factor = map.load_factor();
-    *
-    * Complexity: O(1) (inlined because function is short)
-    *
-    * Notes: our minimal implementation does not automatically rehash when the load
-    * factor is too high. If you want as an extension, you can implement automatic rehashing.
-    */
-    inline float load_factor();
-
-    /*
-    * Returns the number of buckets.
-    *
-    * Parameters: none
-    * Return value: size_t - number of buckets
-    *
-    * Usage:
-    *      size_t buckets = map.bucket_count();
-    *
-    * Complexity: O(1) (inlined because function is short)
-    *
-    * Notes: our minimal implementation does not automatically rehash when the load
-    * factor is too high. If you want, you can implement automatic rehashing.
-    *
-    * What is noexcept? It's a guarantee that this function does not throw
-    * exceptions, allowing the compiler to optimize this function further.
-    * A noexcept function that throws an exception will automatically
-    * terminate the program.
-    */
-    inline size_t bucket_count();
+    inline size_t size() const;
+    inline bool empty() const;
+    inline float load_factor() const;
+    inline size_t bucket_count() const;
 
     /*
     * Returns whether or not the HashMap contains the given key.
@@ -206,7 +145,7 @@ public:
     * Since contains feels more natural to students who've used the Stanford libraries
     * and will be available in the future, we will implement map.contains(key).
     */
-    bool contains(const K& key);
+    bool contains(const K& key) const;
 
     /*
     * Returns a l-value reference to the mapped value given a key.
@@ -228,6 +167,7 @@ public:
     * mapped value. This function is also not const-correct, which you will fix in milestone 2.
     */
     M& at(const K& key);
+    const M& at(const K& key) const;
 
     /*
     * Removes all K/M pairs in the HashMap.
@@ -267,7 +207,7 @@ public:
     * Complexity: O(1) amortized average case
     */
     std::pair<iterator, bool> insert(const value_type& val);
-
+    
     /*
     * Erases a K/M pair (if one exists) corresponding to given key from the HashMap.
     * This is a no-op if the key does not exist.
@@ -356,6 +296,8 @@ public:
     */
     iterator end();
 
+    const_iterator end() const;
+
     /*
     * Finds the element with the given key, and returns an iterator to that element.
     * If an element is not found, an iterator to end() is returned.
@@ -370,6 +312,8 @@ public:
     * Complexity: O(1) amortized average case, O(N) worst case, N = number of elements
     */
     iterator find(const K& key);
+
+    const_iterator find(const K& key) const;
 
     /*
     * Function that will print to std::cout the contents of the hash table as
@@ -448,7 +392,11 @@ public:
 
 
     // TODO: declare headers for copy constructor/assignment, move constructor/assignment
+    HashMap(const HashMap<K, M, H>& map);
+    HashMap(HashMap<K, M, H>&& map);
 
+    HashMap<K, M, H>& operator=(const HashMap<K, M, H>& map);
+    HashMap<K, M, H>& operator=(HashMap<K, M, H>&& map);
 
 private:
     /*
@@ -471,50 +419,12 @@ private:
         * Default constructor, so even if you forget to set next to nullptr it'll be fine.
         *
         */
-        Node() : value(value_type()), next(nullptr) {}; 
+        Node() : value(value_type()), next(nullptr) {};
+        Node(const value_type& value, Node* next):value(value), next(next) {};
     };
 
-    /*
-    * Type alias for a pair of node*'s.
-    *
-    * This is used in find_node.
-    *
-    * Usage:
-    *      auto& [prev, curr] = node_pair{nullptr, new node()};
-    */
     using node_pair = std::pair<Node *, Node *>;
-
-    /*
-    * Finds the node N with given key, and returns a node_pair consisting of
-    * the node whose's next is N, and N. If node is not found, {nullptr, nullptr}
-    * is returned. If node found is the first in the list, {nullptr, node} is returned.
-    *
-    * Example given list: front -> [A] -> [B] -> [C] -> /
-    * where A, B, C, D are pointers, then
-    *
-    * find_node(A_key) = {nullptr, A}
-    * find_node(B_key) = {A, B}
-    * find_node(C_key) = {B, C}
-    * find_node(D_key) = {nullptr, nullptr}
-    *
-    * Usage:
-    *      auto& [prev, curr] = find_node(3);
-    *      if (prev == nullptr) { ... }
-    *
-    * Complexity: O(1) amortized average case, O(N) worst case, N = number of elements
-    *
-    * Notes: this function is necessary because when erasing, we need to change the
-    * next pointer of the node before the one we are erasing.
-    *
-    * Hint: on the assignment, you should NOT need to call this function.
-    */
     node_pair find_node(const K& key) const;
-
-    /*
-    * Finds the first bucket in _buckets_array that is non-empty.
-    *
-    * Hint: on the assignment, you should NOT need to call this function.
-    */
     size_t first_not_empty_bucket() const;
 
     /*
@@ -525,45 +435,11 @@ private:
     iterator make_iterator(Node* curr);
 
     /* Private member variables */
-
-    /*
-    * instance variable: _size, the number of elements, which are K/M pairs.
-    * Don't confuse this with the number of buckets!
-    */
     size_t _size;
-
-    /*
-    * instance variable: _hash_function, a function (K -> size_t) that is used
-    * to hash K's to determine which bucket they should be inserted/found.
-    *
-    * Remember to mod the output of _hash_function by _bucket_count!
-    *
-    * Usage:
-    *      K element = // something;
-    *      size_t index = _hash_function(element) % _bucket_count;
-    *
-    */
     H _hash_function;
-
-    /*
-    * The array (vector) of buckets. Each bucket is a linked list,
-    * and the item stored in the bucket is the front pointer of that linked list.
-    *
-    * Usage:
-    *      node* ptr = _buckets_array[index];          // _buckets_array is array of node*
-    *      const auto& [key, mapped] = ptr->value;     // each node* contains a value that is a pair
-    */
     std::vector<Node *> _buckets_array;
 
-    /*
-    * A constant for the default number of buckets for the default constructor.
-    */
     static const size_t kDefaultBuckets = 10;
-
-    /*
-     * A private type alias used by the iterator class so it can traverse
-     * the buckets.
-     */
     using bucket_array_type = decltype(_buckets_array);
 };
 

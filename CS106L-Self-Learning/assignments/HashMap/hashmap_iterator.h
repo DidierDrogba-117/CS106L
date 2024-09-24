@@ -75,8 +75,8 @@ public:
     *
     * Note that dereferencing an invalid or end() iterator is undefined behavior.
     */
-    reference operator*();
-    pointer operator->();
+    reference operator*() const;
+    pointer operator->() const;
 
     /*
     * Increment operators: moves the iterator to point to the next element, or end().
@@ -152,8 +152,50 @@ private:
 };
 
 template<typename Map, bool IsConst>
+typename HashMapIterator<Map, IsConst>::reference HashMapIterator<Map, IsConst>::operator*() const {
+    return _node->value;
+}
+
+template<typename Map, bool IsConst>
+typename HashMapIterator<Map, IsConst>::pointer HashMapIterator<Map, IsConst>::operator->() const {
+    return &(_node->value);
+}
+
+template<typename Map, bool IsConst>
 HashMapIterator<Map, IsConst>::HashMapIterator(bucket_array_type* buckets_array, Node* node, size_t bucket_idx):
     _buckets_array(buckets_array),
     _node(node),
     _bucket_idx(bucket_idx) {};
+
+template<typename Map, bool IsConst>
+HashMapIterator<Map, IsConst>& HashMapIterator<Map, IsConst>::operator++(){
+
+    if (_node != nullptr) {
+        Node* next_node = _node->next;
+        while (next_node == nullptr && _bucket_idx < (_buckets_array->size() - 1))
+        {
+            next_node = (*_buckets_array)[++_bucket_idx];
+        }
+        _node = next_node;
+    }
+    return *this;
+}
+
+template<typename Map, bool IsConst>
+HashMapIterator<Map, IsConst> HashMapIterator<Map, IsConst>::operator++(int) {
+    HashMapIterator<Map, IsConst> temp = *this;
+    ++(*this);
+    return temp;
+}
+
+template<typename Map, bool IsConst>
+bool operator==(const HashMapIterator<Map, IsConst>& rhs, const HashMapIterator<Map, IsConst>& lhs) {
+    return rhs._node == lhs._node;
+}
+
+template <typename Map, bool IsConst>
+bool operator!=(const HashMapIterator<Map, IsConst>& lhs, const HashMapIterator<Map, IsConst>& rhs) {
+    return lhs._node != rhs._node;
+}
+
 #endif
