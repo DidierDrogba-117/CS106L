@@ -114,6 +114,7 @@ private:
     Node* insert_node(Node*& currNode, const Point<N>& pt, const ElemType& value, int currDimension);
     Node* find_node(Node* currNode, const Point<N>& pt, int currDimension) const;
     void find_knn(BoundedPriorityQueue<ElemType>* bpq, Node* currNode, const Point<N>& pt, size_t currDimension) const;
+    Node* copy_tree(Node* src_node);
 };
 
 // step 1  
@@ -312,7 +313,37 @@ void KDTree<N, ElemType>::find_knn(BoundedPriorityQueue<ElemType>* bpq, Node* cu
 }
 
 
+template <size_t N, typename ElemType>
+typename KDTree<N, ElemType>::Node* KDTree<N, ElemType>::copy_tree(Node* src_node) {
+    if (src_node == nullptr) {return nullptr;}
+    Node* new_node = new Node;
+    
+    new_node->point = src_node->point;
+    new_node->element = src_node->element;
 
+    new_node->left_node = copy_tree(src_node->left_node);
+    new_node->right_node = copy_tree(src_node->right_node);
+
+    return new_node;
+}
+
+template <size_t N, typename ElemType>
+KDTree<N, ElemType>::KDTree(const KDTree& rhs) : tree_size(rhs.tree_size) {
+    root_node = copy_tree(rhs.root_node);
+}
+
+template <size_t N, typename ElemType>
+KDTree<N, ElemType>& KDTree<N, ElemType>::operator=(const KDTree<N, ElemType>& rhs)
+{
+    if (this == &rhs) {return *this;}
+
+    delete_tree(root_node);
+    
+    tree_size = rhs.tree_size; 
+    root_node = copy_tree(rhs.root_node);
+
+    return *this;
+}
 
 
 #endif // KDTREE_INCLUDED
