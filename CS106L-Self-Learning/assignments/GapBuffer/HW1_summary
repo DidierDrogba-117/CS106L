@@ -1,0 +1,11 @@
+
+HW1 Summary:
+In this assignment, I focused on key C++ concepts for improving code efficiency and structure:
+
+Member Initialization List: This approach is more efficient than default initialization followed by reassignment, ensuring better performance, especially with multiple member variables.
+
+Const vs. Non-Const Functions: I used const_cast to avoid duplicating code between const and non-const member functions, maintaining clean, reusable code.
+
+Iterators: I practiced using iterators to traverse containers like std::vector, ensuring efficient, standard iteration.
+
+Move Semantics: I learned about move constructors and move assignment operators, which enable efficient resource management by transferring ownership without unnecessary copying, key for performance optimization.

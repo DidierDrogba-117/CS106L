@@ -1,0 +1,1 @@
+A KD Tree is like a regular BST but works across multiple dimensions. It alternates between dimensions using (index + 1) % N at each level to decide the split, ensuring cyclical comparison across coordinates.
