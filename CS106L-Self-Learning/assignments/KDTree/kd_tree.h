@@ -173,7 +173,7 @@ typename KDTree<N, ElemType>::Node* KDTree<N, ElemType>::insert_node(Node*& curr
         return currNode;
    }
 
-   if (point[currDimension] > currNode->point[currDimension]) {
+   if (pt[currDimension] > currNode->point[currDimension]) {
     // go to the right 
     return insert_node(currNode->right_node, pt, value, (currDimension + 1) % N);
    }
@@ -199,10 +199,10 @@ typename KDTree<N, ElemType>::Node* KDTree<N, ElemType>::find_node
     if (currNode->point == pt) {return currNode;}
 
     // go to right subtree
-    if (pt[currDimension] > currNode->pointer[currDimension]) {
-        return find_node(currNode->right_node, pt, (currNode+1) % N);
+    if (pt[currDimension] > currNode->point[currDimension]) {
+        return find_node(currNode->right_node, pt, (currDimension+1) % N);
     }
-    else {return find_node(currNode->left_node, pt, (currNode+1) % N);}
+    else {return find_node(currNode->left_node, pt, (currDimension+1) % N);}
 }
 
 // Returns a reference to the value associated with the
@@ -218,7 +218,7 @@ ElemType& KDTree<N, ElemType>::operator[](const Point<N>& pt)
     Node* node = find_node(root_node, pt, 0);
     if (node == nullptr) {
         ElemType default_value = ElemType();
-        node = insert(pt, default_value);
+        node = insert_node(root_node, pt, default_value, 0);
     }
     return node->element;
 }
