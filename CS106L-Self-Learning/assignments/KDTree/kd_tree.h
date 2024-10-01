@@ -107,7 +107,150 @@ public:
 
 private:
     // TODO: Add implementation details here.
+    size_t tree_size;
+    Node* root_node;
 
+    void delete_tree(Node* root);
+    Node* insert_node(Node*& currNode, const Point<N>& pt, const ElemType& value, int currDimension);
+    Node* find_node(Node* currNode, const Point<N>& pt, int currDimension) const;
 };
+
+// step 1  
+template <size_t N, typename ElemType>
+KDTree<N, ElemType>::KDTree() : tree_size(0), root_node(nullptr) {}
+
+template <size_t N, typename ElemType>
+KDTree<N, ElemType>::~KDTree() {delete_tree(root_node);}
+
+template <size_t N, typename ElemType>
+void KDTree<N, ElemType>::delete_tree(Node* root) {
+    if (root == nullptr) {return;}
+    delete_tree(root->left_node);
+    delete_tree(root->right_node);
+    delete root; 
+}
+
+template <size_t N, typename ElemType>
+size_t KDTree<N, ElemType>::dimension() const {
+    return N; 
+}
+
+template <size_t N, typename ElemType>
+size_t KDTree<N, ElemType>::size() const {return tree_size;}
+
+template <size_t N, typename ElemType>
+bool KDTree<N, ElemType>::empty() const {return tree_size == 0;}
+
+
+// Inserts the specified point into the KDTree with
+// associated value value. If the point already exists in the
+// KDTree, the old value is overwritten.
+template <size_t N, typename ElemType>
+void KDTree<N, ElemType>::insert (const Point<N>& pt, const ElemType& value) {
+    insert_node(root_node, pt, value, 0);
+}
+
+
+
+
+// insert_node method 
+template <size_t N, typename ElemType>
+typename KDTree<N, ElemType>::Node* KDTree<N, ElemType>::insert_node(Node*& currNode, const Point<N>& pt, const ElemType& value, int currDimension) {
+    /*
+    1. If the current node is null, create a new node with the point and value and return.
+    2. If the current point is equal to the point, update the value and return.
+    3. recursively compare, and insert the point to the left or right of the current node.
+    */
+   if (currNode == nullptr) {
+        currNode = new Node;
+        *currNode = {pt, value, nullptr, nullptr}; // member init list
+        tree_size++;
+        return currNode;
+   }
+
+   if (currNode->point == pt) {
+        currNode->element = value;
+        return currNode;
+   }
+
+   if (point[currDimension] > currNode->point[currDimension]) {
+    // go to the right 
+    return insert_node(currNode->right_node, pt, value, (currDimension + 1) % N);
+   }
+   else {
+    // go to the left
+    return insert_node(currNode->left_node, pt, value, (currDimension + 1) % N);
+        }
+}
+
+
+
+// Returns whether the specified Point is contained in the KDTree.
+template <size_t N, typename ElemType> 
+bool KDTree<N, ElemType>::contains(const Point<N>& pt) const {
+    Node* node = find_node(root_node, pt, 0);
+    return node != nullptr;
+}
+
+template <size_t N, typename ElemType> 
+typename KDTree<N, ElemType>::Node* KDTree<N, ElemType>::find_node
+(Node* currNode, const Point<N>& pt, int currDimension) const {
+    if (currNode == nullptr) {return nullptr;}
+    if (currNode->point == pt) {return currNode;}
+
+    // go to right subtree
+    if (pt[currDimension] > currNode->pointer[currDimension]) {
+        return find_node(currNode->right_node, pt, (currNode+1) % N);
+    }
+    else {return find_node(currNode->left_node, pt, (currNode+1) % N);}
+}
+
+// Returns a reference to the value associated with the
+// point pt. If the point does not exist in the KDTree, it is
+// added with the default value of ElemType as its value,
+// and a reference to this new value is returned. This is the
+// same behavior as the STL map's operator[].
+// Note that this function does not have a const overload
+// because the function may mutate the tree.
+template <size_t N, typename ElemType> 
+ElemType& KDTree<N, ElemType>::operator[](const Point<N>& pt)
+{
+    Node* node = find_node(root_node, pt, 0);
+    if (node == nullptr) {
+        ElemType default_value = ElemType();
+        node = insert(pt, default_value);
+    }
+    return node->element;
+}
+
+
+
+
+// Returns a reference to the value associated with the
+// point pt, if it exists. If the point is not in the tree, then
+// this function throws an out_of_range exception.
+template <size_t N, typename ElemType> 
+ElemType& KDTree<N, ElemType>::at(const Point<N>& pt){
+    Node* node = find_node(root_node, pt, 0);   
+    if (node == nullptr) {
+        throw std::out_of_range("Point not found in KDTree");
+    }
+    return node->element;
+}
+
+
+// This function is const-overloaded, since it does not
+// change the tree.
+template <size_t N, typename ElemType> 
+const ElemType& KDTree<N, ElemType>::at(const Point<N>& pt) const{
+    Node* node = find_node(root_node, pt, 0);   
+    if (node == nullptr) {
+        throw std::out_of_range("Point not found in KDTree");
+    }
+    return node->element;
+}
+
+
+
 
 #endif // KDTREE_INCLUDED
