@@ -113,6 +113,7 @@ private:
     void delete_tree(Node* root);
     Node* insert_node(Node*& currNode, const Point<N>& pt, const ElemType& value, int currDimension);
     Node* find_node(Node* currNode, const Point<N>& pt, int currDimension) const;
+    void find_knn(BoundedPriorityQueue<ElemType>* bpq, Node* currNode, const Point<N>& pt, size_t currDimension) const;
 };
 
 // step 1  
@@ -243,12 +244,73 @@ ElemType& KDTree<N, ElemType>::at(const Point<N>& pt){
 // change the tree.
 template <size_t N, typename ElemType> 
 const ElemType& KDTree<N, ElemType>::at(const Point<N>& pt) const{
-    Node* node = find_node(root_node, pt, 0);   
-    if (node == nullptr) {
-        throw std::out_of_range("Point not found in KDTree");
-    }
-    return node->element;
+    return const_cast<KDTree<N, ElemType>*>(this)->at(pt);
 }
+template <size_t N, typename ElemType> 
+ElemType KDTree<N, ElemType>::kNNValue(const Point<N>& key, size_t k) const {
+    /*
+    1. Create a bounded priority queue of size k.
+    2. use find_knn to enqueue the k nearest neighbors.
+    3. return the most common value in the queue.
+    */
+   BoundedPriorityQueue<ElemType>* bpq = new BoundedPriorityQueue<ElemType>(k);
+   find_knn(bpq, root_node, key, 0);
+
+   std::map<ElemType, size_t> freq_map;
+
+   while (!bpq->empty()) {
+    ElemType elem = bpq->dequeueMin();
+    if (freq_map.contains(elem)) {
+        freq_map[elem]++;
+    }
+    else {
+        freq_map[elem] = 1;
+    }
+   }
+
+    ElemType most_common_elem;
+    size_t max_freq = 0;
+
+    for (const auto& [elem, freq] : freq_map) {
+        if (freq > max_freq) {
+            max_freq = freq;
+            most_common_elem = elem;
+        }
+    }
+
+    delete bpq;
+    return most_common_elem;
+}
+
+template <size_t N, typename ElemType> 
+void KDTree<N, ElemType>::find_knn(BoundedPriorityQueue<ElemType>* bpq, Node* currNode, const Point<N>& pt, size_t currDimension) const {
+    /*
+    1. because we use bpq, we can insert visited nodes with prority, bpq will automatically remove the node with the highest priority(farthest element, the one with highest distance).
+    2. Recurse into the left or right subtree, based on the current dimension
+    3. Check if we should explore the other subtree based on distance
+    */
+   if (currNode == nullptr) {return;}
+
+   bpq->enqueue(currNode->element, Distance(pt, currNode->point));
+
+   int next_dimension = (currDimension + 1) % N;
+   if (currNode->point[currDimension] > pt[currDimension]) {
+    // go left 
+    find_knn(bpq, currNode->left_node, pt, next_dimension);
+   }
+   else {find_knn(bpq, currNode->right_node, pt, next_dimension);}
+
+    // check if we should explore the other subtree
+    double distance = fabs(currNode->point[currDimension] - pt[currDimension]);
+    if (bpq->worst() >distance || bpq->size() < bpq->maxSize()) {
+        if (currNode->point[currDimension] > pt[currDimension]) 
+        // we already checked the left subtree in previous step
+        {find_knn(bpq, currNode->right_node, pt, next_dimension);}
+        // we already checked the right subtree in previous step
+        else {find_knn(bpq, currNode->left_node, pt, next_dimension);}
+    }
+}
+
 
 
 
